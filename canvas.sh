@@ -41,3 +41,4 @@ export ASSIGNMENT_ID=$(python extract_assignment_id.py "$ASSIGNMENT" <<< """$ASS
 # Downloads all the submissions of the specified ASSIGNMENT_ID environment variable.
 DOWNLOAD_LINKS=$(python download_submissions.py)
 
+(python split_into_groups.py)

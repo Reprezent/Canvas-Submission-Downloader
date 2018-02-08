@@ -71,11 +71,15 @@ def find_assignments(json_list):
     return rv
 
 def download_all_files(files_dict): 
+    directory = "student_files"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
     for k,v in files_dict.items():
         #print(v, file=sys.stderr)
         for i in v:
             url = i[1]
-            filename = k+i[0]
+            filename = directory + "/" + k+i[0]
             url_req = Request(url)
             #print(filename, file=sys.stderr)
             try:
