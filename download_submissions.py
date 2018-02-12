@@ -19,6 +19,15 @@ if len(sys.argv) != 1:
     print(sys.stderr, "usage: python " + sys.argv[0] + " < json_response")
     sys.exit(1);
 
+# Caches the id -> name field.
+name_cache = dict()
+with open("name-id-cache", "r") as f:
+    for line in f:
+        kv = line.split(":")
+        name_cache[kv[0]] = kv[1]
+        
+names_cache_file = open("name-id-cache", "a")
+    
 
 def get_user_name(json_resp):
     try:
@@ -31,6 +40,9 @@ def get_user_name_from_id(json_dict):
     decoder = json.JSONDecoder()
     try:
         user_id = json_dict["user_id"]
+        if user_id in name_cache:
+            return name_cache[user_id]
+
         url = os.environ["HOST"] + "/" \
             + os.environ["API_VERS"] + "/" \
             + os.environ["COURSES_PATH"] + "/" \
@@ -46,6 +58,8 @@ def get_user_name_from_id(json_dict):
             name = name.replace(", ", "-")
             name = name.replace(" ", "-")
             name = name + '-'
+        print(userid + ": " + name, file=names_cache_file)
+        name_cache[user_id] = name
         #print(name, file=sys.stderr)
         return name
 
@@ -110,3 +124,4 @@ while True:
     i += 1
     
 download_all_files(course_dict)
+names_cache_file.close()
