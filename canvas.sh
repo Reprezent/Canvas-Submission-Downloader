@@ -25,7 +25,7 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-export TOKEN=$(<token)
+export TOKEN=$(<$SCRIPT_PATH/token)
 
 # Requests courses for user.
 COURSES_REQUEST=$(curl $HOST/$API_VERS/$COURSES_PATH/ \
