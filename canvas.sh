@@ -12,6 +12,13 @@ export COURSES_PATH="courses"
 export ASSIGNMENTS_PATH="assignments"
 export SUBMISSIONS_PATH="submissions"
 COURSE_CODE="COSC302"
+# Absolute path to this script, e.g. /home/user/bin/foo.sh
+SCRIPT=$(readlink -f "$0")
+# Absolute path this script is in, thus /home/user/bin
+SCRIPT_PATH=$(dirname "$SCRIPT")
+
+
+
 
 if [ "$#" -ne 1 ]; then
     echo "Usage: $0 Lab-Name" >&2
@@ -26,7 +33,7 @@ COURSES_REQUEST=$(curl $HOST/$API_VERS/$COURSES_PATH/ \
                    2> /dev/null)
 
 # Extracts the Course ID from the course code.
-export ID=$(python extract_course_id.py $COURSE_CODE <<< """$COURSES_REQUEST""")
+export ID=$(python $SCRIPT_PATH/extract_course_id.py $COURSE_CODE <<< """$COURSES_REQUEST""")
 
 # Gets a json request of all assignments offered on a course. (This needs to be pagenated)
 ASSIGNMENTS_REQUEST=$(curl $HOST/$API_VERS/$COURSES_PATH/$ID/$ASSIGNMENTS_PATH/ \
@@ -36,9 +43,9 @@ ASSIGNMENTS_REQUEST=$(curl $HOST/$API_VERS/$COURSES_PATH/$ID/$ASSIGNMENTS_PATH/ 
 
 
 # Extracts the assignment id number from the assignment string passed
-export ASSIGNMENT_ID=$(python extract_assignment_id.py "$ASSIGNMENT" <<< """$ASSIGNMENTS_REQUEST""")
+export ASSIGNMENT_ID=$(python $SCRIPT_PATH/extract_assignment_id.py "$ASSIGNMENT" <<< """$ASSIGNMENTS_REQUEST""")
 
 # Downloads all the submissions of the specified ASSIGNMENT_ID environment variable.
-DOWNLOAD_LINKS=$(python download_submissions.py)
+DOWNLOAD_LINKS=$(python $SCRIPT_PATH/download_submissions.py)
 
-(python split_into_groups.py)
+(python $SCRIPT_PATH/split_into_groups.py)
