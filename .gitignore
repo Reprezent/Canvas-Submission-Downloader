@@ -1,0 +1,19 @@
+# Caches
+.name-id-cache
+
+# Version backups
+v1
+v2
+v3
+
+# Misc files
+grades
+grading.py
+grade.sh
+test.sh
+test_inputs.py
+
+
+
+# Token API key
+token
