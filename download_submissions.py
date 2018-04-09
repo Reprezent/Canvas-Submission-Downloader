@@ -19,14 +19,21 @@ if len(sys.argv) != 1:
     print(sys.stderr, "usage: python " + sys.argv[0] + " < json_response")
     sys.exit(1);
 
-# Caches the id -> name field.
-name_cache = dict()
-with open("name-id-cache", "r") as f:
-    for line in f:
-        kv = line.split(":")
-        name_cache[kv[0]] = kv[1]
+global_name_cache = None
+CACHE_FILE_NAME = ".name-id-cache"
+
+def read_cache(filename=".name-id-cache"):
+    # Caches the id -> name field.
+    name_cache = dict()
+    try:
+        with open(filename, "r") as f:
+            for line in f:
+                kv = line.split(":")
+                name_cache[kv[0]] = kv[1]
+    except IOError:
+        pass
+    return name_cache
         
-names_cache_file = open("name-id-cache", "a")
     
 
 def get_user_name(json_resp):
@@ -40,8 +47,8 @@ def get_user_name_from_id(json_dict):
     decoder = json.JSONDecoder()
     try:
         user_id = json_dict["user_id"]
-        if user_id in name_cache:
-            return name_cache[user_id]
+        if user_id in global_name_cache:
+            return global_name_cache[user_id]
 
         url = os.environ["HOST"] + "/" \
             + os.environ["API_VERS"] + "/" \
@@ -58,8 +65,8 @@ def get_user_name_from_id(json_dict):
             name = name.replace(", ", "-")
             name = name.replace(" ", "-")
             name = name + '-'
-        print(userid + ": " + name, file=names_cache_file)
-        name_cache[user_id] = name
+        print(str(user_id) + ": " + name, file=sys.stderr)
+        global_name_cache[user_id] = name
         #print(name, file=sys.stderr)
         return name
 
@@ -107,8 +114,14 @@ def download_all_files(files_dict):
                 print("URL Error:", e.reason, url, file=sys.stderr)
 
 
+def write_cache(cache, filename=".name-id-cache"):
+    with open(filename, "w") as f:
+        for k,v in enumerate(cache):
+            print("{0}:{1}".format(k, v), file=f)
+
 decoder = json.JSONDecoder()
 course_dict = dict()
+global_name_cache = read_cache()
 i = 1
 while True:
     url = os.environ["HOST"] + "/" + os.environ["API_VERS"] + "/" + os.environ["COURSES_PATH"] + "/" \
@@ -124,4 +137,4 @@ while True:
     i += 1
     
 download_all_files(course_dict)
-names_cache_file.close()
+write_cache(global_name_cache)
