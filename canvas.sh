@@ -31,6 +31,10 @@ if [ ! -f "$SCRIPT_PATH/token" ]; then
     exit 2
 fi
 
+if [ ! -f "$SCRIPT_PATH/groups" ]; then
+    printf "groups file needed for use with splitting the group\nAdd a file with student groups to this path $SCRIPT_PATH\n";
+    exit 2
+fi
 export TOKEN=$(<$SCRIPT_PATH/token)
 
 # Requests courses for user.
@@ -78,7 +82,7 @@ fi
 
 export ASSIGNMENT_ID
 # Downloads all the submissions of the specified ASSIGNMENT_ID environment variable.
-DOWNLOAD_LINKS=$(python $SCRIPT_PATH/download_submissions.py)
+DOWNLOAD_LINKS=$(python $SCRIPT_PATH/download_submissions.py $SCRIPT_PATH/.name-id-cache)
 
 RV=$?
 if [ "$RV" != "0" ]; then
@@ -86,7 +90,7 @@ if [ "$RV" != "0" ]; then
     exit $RV
 fi
 
-(python $SCRIPT_PATH/split_into_groups.py)
+(python $SCRIPT_PATH/split_into_groups.py $SCRIPT_PATH/groups)
 
 RV=$?
 if [ "$RV" != "0" ]; then

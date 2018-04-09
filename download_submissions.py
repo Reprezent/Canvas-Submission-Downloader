@@ -15,12 +15,14 @@ except ImportError:
     from urllib2 import Request, urlopen, URLError, HTTPError # Python 2
 
 
-if len(sys.argv) != 1:
-    print(sys.stderr, "usage: python " + sys.argv[0] + " < json_response")
+if len(sys.argv) != 1 and len(sys.argv) != 2:
+    print("usage: python " + sys.argv[0] + " [cache location]", file=sys.stderr)
     sys.exit(1);
 
 global_name_cache = None
 CACHE_FILE_NAME = ".name-id-cache"
+if len(sys.argv) == 2:
+    CACHE_FILE_NAME = sys.argv[1]
 
 def read_cache(filename=".name-id-cache"):
     # Caches the id -> name field.
@@ -28,7 +30,9 @@ def read_cache(filename=".name-id-cache"):
     try:
         with open(filename, "r") as f:
             for line in f:
-                kv = line.split(":")
+                kv = line.strip().split(":")
+                kv[0] = int(kv[0])
+                # print("READ CACHE: Added {0} = {1} to cache, thier types are {2}, {3}".format(kv[0], kv[1], type(kv[0]), type(kv[1])), file=sys.stderr)
                 name_cache[kv[0]] = kv[1]
     except IOError:
         pass
@@ -65,8 +69,10 @@ def get_user_name_from_id(json_dict):
             name = name.replace(", ", "-")
             name = name.replace(" ", "-")
             name = name + '-'
-        print(str(user_id) + ": " + name, file=sys.stderr)
-        global_name_cache[user_id] = name
+            name = str(name)
+            # print(str(user_id) + ": " + name, file=sys.stderr)
+            # print("GET ID: Added {0} = {1} to cache, thier types are {2}, {3}".format(user_id, name, type(user_id), type(name)), file=sys.stderr)
+            global_name_cache[user_id] = name
         #print(name, file=sys.stderr)
         return name
 
@@ -116,12 +122,13 @@ def download_all_files(files_dict):
 
 def write_cache(cache, filename=".name-id-cache"):
     with open(filename, "w") as f:
-        for k,v in enumerate(cache):
+        for k,v in cache.items():
+            # print("Wririntg {0}:{1} to cache".format(k, v), file=sys.stderr)
             print("{0}:{1}".format(k, v), file=f)
 
 decoder = json.JSONDecoder()
 course_dict = dict()
-global_name_cache = read_cache()
+global_name_cache = read_cache(CACHE_FILE_NAME)
 i = 1
 while True:
     url = os.environ["HOST"] + "/" + os.environ["API_VERS"] + "/" + os.environ["COURSES_PATH"] + "/" \
@@ -137,4 +144,4 @@ while True:
     i += 1
     
 download_all_files(course_dict)
-write_cache(global_name_cache)
+write_cache(global_name_cache, CACHE_FILE_NAME)

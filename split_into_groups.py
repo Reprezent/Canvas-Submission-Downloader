@@ -8,7 +8,7 @@ import os
 
 
 if len(sys.argv) != 1 and len(sys.argv) != 2:
-    print(sys.stderr, "usage: python " + sys.argv[0] + " [group number]")
+    print(sys.stderr, "usage: python " + sys.argv[0] + "[groups_file_location]")
     sys.exit(1);
 
 def split_into_groups(groups, student_dir="student_files"):
@@ -46,8 +46,13 @@ def read_groups(filename):
 
     return rv
         
+groups_file = "groups"
+if len(sys.argv) is 2:
+    groups_file = sys.argv[1]
+    # print("Groups file is {0}".format(groups_file), file=sys.stderr)
 
 
-groups_list = read_groups("groups")
+
+groups_list = read_groups(groups_file)
 split_into_groups(groups_list)
     
