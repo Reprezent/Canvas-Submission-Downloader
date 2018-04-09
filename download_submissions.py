@@ -7,10 +7,14 @@ import sys
 import os
 import subprocess
 import asyncio
+import socket
+import pprint
+import concurrent
 
 
 try:
     from urllib.request import Request, urlopen, urlretrieve, URLError, HTTPError  # Python 3
+    import urllib
 except ImportError:
     from urllib2 import Request, urlopen, URLError, HTTPError # Python 2
 
@@ -24,6 +28,7 @@ CACHE_FILE_NAME = ".name-id-cache"
 if len(sys.argv) == 2:
     CACHE_FILE_NAME = sys.argv[1]
 
+global_executor = concurrent.futures.ThreadPoolExecutor()
 def read_cache(filename=".name-id-cache"):
     # Caches the id -> name field.
     name_cache = dict()
@@ -97,27 +102,51 @@ def find_assignments(json_list):
             continue
     return rv
 
+async def download_file(url, filename):
+    url_req = Request(url)
+
+    #print(filename, file=sys.stderr)
+    try:
+        #print("{0}:{1}".format(url_req.hostname, url_req.port), file=sys.stderr)
+        
+        #print("start", file=sys.stderr)
+        #print(url_req, file=sys.stderr)
+        #pprint.pprint(asyncio.Task.all_tasks(), stream=sys.stderr)
+        #reader,writer = await asyncio.open_connection(host=url_req.hostname, port=url_req.port, loop=loop)
+        #print("AFTER READER/WRITER", file=sys.stderr)
+
+        f = await asyncio.get_event_loop().run_in_executor(None, urlopen, url_req)
+        with open(filename, "wb") as local_file:
+            local_file.write(f.read())
+            #print("AFTER FILE WRITING", file=sys.stderr)
+    # handle errors
+    except HTTPError as e:
+        print("HTTP Error:", e.code, url, file=sys.stderr)
+    except URLError as e:
+        print("URL Error:", e.reason, url, file=sys.stderr)
+    
 def download_all_files(files_dict): 
     directory = "student_files"
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    for k,v in files_dict.items():
+    loop = asyncio.get_event_loop()
+    # loop.set_debug(True)
+    loop.set_default_executor(global_executor)
+
+    #pending = asyncio.Task.all_tasks()
+    #loop.run_until_complete(asyncio.gather(*pending))
+    #loop.close()
+    tasks = [asyncio.async(download_file(i[1], directory + "/" + k+i[0])) for k,v in files_dict.items() for i in v]
+    # print(tasks, file=sys.stderr)
+    loop.run_until_complete(asyncio.wait(tasks))
+    #for k,v in files_dict.items():
         #print(v, file=sys.stderr)
-        for i in v:
-            url = i[1]
-            filename = directory + "/" + k+i[0]
-            url_req = Request(url)
-            #print(filename, file=sys.stderr)
-            try:
-                f = urlopen(url_req)
-                with open(filename, "wb") as local_file:
-                    local_file.write(f.read())
-            # handle errors
-            except HTTPError as e:
-                print("HTTP Error:", e.code, url, file=sys.stderr)
-            except URLError as e:
-                print("URL Error:", e.reason, url, file=sys.stderr)
+     #   for i in v:
+      #      url = i[1]
+       #     filename = directory + "/" + k+i[0]
+            
+
 
 
 def write_cache(cache, filename=".name-id-cache"):
