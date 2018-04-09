@@ -10,7 +10,7 @@ import asyncio
 
 
 try:
-    from urllib.request import Request, urlopen, urlretrieve  # Python 3
+    from urllib.request import Request, urlopen, urlretrieve, URLError, HTTPError  # Python 3
 except ImportError:
     from urllib2 import Request, urlopen, URLError, HTTPError # Python 2
 
@@ -114,9 +114,9 @@ def download_all_files(files_dict):
                 with open(filename, "wb") as local_file:
                     local_file.write(f.read())
             # handle errors
-            except HTTPError, e:
+            except HTTPError as e:
                 print("HTTP Error:", e.code, url, file=sys.stderr)
-            except URLError, e:
+            except URLError as e:
                 print("URL Error:", e.reason, url, file=sys.stderr)
 
 
@@ -137,7 +137,7 @@ while True:
     url_req = Request(url);
     url_req.add_header("Authorization", "Bearer " + os.environ["TOKEN"])
     json_ret = urlopen(url_req).read()
-    DATA = decoder.decode(json_ret)
+    DATA = decoder.decode(json_ret.decode())
     course_dict.update(find_assignments(DATA))
     if len(DATA) == 0:
         break
