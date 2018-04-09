@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # Richard "Alex" Riedel
 # Spring 2018
 # This script extracts the course id number from the specified course 

@@ -1,4 +1,3 @@
-#!/usr/bin/python
 
 from __future__ import print_function
 
@@ -7,6 +6,7 @@ import json
 import sys
 import os
 import subprocess
+import asyncio
 
 
 try:
